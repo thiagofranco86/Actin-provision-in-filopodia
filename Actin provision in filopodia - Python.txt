@@ -1,0 +1,652 @@
+#Stochastic model to actin provision and polymerization in filopodia
+#Author: Thiago F. Leal
+
+#Main features:
+#Object-oriented programming as a modeling strategy
+#Diffusion and cytoplasm flow as the main transport phenomena
+#Option to simulate (or not) actin binding proteins 
+
+
+#All units converted to nanometers
+
+
+#Libraries 
+import random
+import math
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+
+#Classes
+
+#Bundle: N filaments (labeled by numfil = 1..N) computed at same time; 
+#        Store the number of monomers in each filament;
+#        Polymerization and depolymerization processes as class methods; 
+#        Control the number of compartments in the domain.
+
+class bundle:
+    def __init__(self, numfil):
+        self.length = 0
+        self.data = []
+        self.numfil = numfil
+        self.compart = 1
+        self.numon = 0
+               
+    def isEmpty(self):
+        return (self.length == 0)
+
+    def polymerize(self, numfil, monomer):
+        self.data.insert(numfil, monomer)
+        self.data.insert(binding)
+        monomer.status = 'off'
+                                
+    def depolymerize(self, numfil, num):
+        if self.numon >= num:
+            self.numon = self.numon - num
+            self.length = self.length - 0.027
+        self.numon = self.numon - N
+        
+    
+#Molecules: actin (A), profilin (P), and Ena/VASP (E).
+    
+class molecules:
+    def __init__(self, name, posx, posy, number):
+        self.name = name        
+        self.posx = posx        
+        self.posy = R
+        self.position = [self.posx,self.posy]
+        self.number = [0]      	#control how many particles there are in the system
+        self.status = 'on'
+                
+
+#Bindings: AA, AP, EP;
+#          Ena/VASP mediating polymerizationbinds means that it controls all F-actin tips.
+        
+class bindings:
+    def __init__(self, name, mol1, mol2):
+        self.name = name        
+        self.status = 'on'
+        if mol1.status = 'off':
+	    self.data.insert(numfil)      #binding inserted in filament
+        else:        
+	    self.data.insert(bond)        #information stored in queue
+
+
+
+#Main function: filopodial dynamics
+ 
+def main(tfinal):             #insert total time of simulation (tfinal)
+    
+    #Parameters
+    global R
+    R = 100    
+    global L
+    L = 0.0
+    global kon
+    kon = 1.08*10**(-2)     #nanomolar
+    global C
+    C = 0
+    global h
+    h = 27   
+    
+    #Bundle configuration 
+    global N
+    N = 20
+    global s
+    s = 0
+    
+    #Relation between r and s
+    global r 
+    r = 10 - s/2
+ 
+    #Auxiliar computing parameters
+    global Vol_fluid
+    Vol_fluid = 0.0
+    global side
+    side = 0
+    global k
+    k = 0
+    global dt
+    dt = 10**(-4)
+    global t1
+    t1 = 0
+    
+    t = 0
+    pol = False
+    a = 1
+    b = 0
+    
+    #Auxiliar data structures
+    global X
+    X=[]
+    global Y
+    Y=[]   
+    global Z
+    Z=[]
+      
+    #Velocities
+    global vret
+    vret = 70     #nm/s
+    global vin
+    vin = 0.0
+    global vdif
+    vdif = 0
+    global vout
+    vout = 0
+    global vx
+    vx = 0
+        
+    #Initialize storage objects
+    global bundle
+    bundle = filament(N)
+    global reservoir
+    reservoir = []
+    global bond
+    bond = []      
+      
+    #Initialize molecule objects
+    global Act
+    Act = monomer('Actin', 0, 0)
+    global Prof
+    Prof = monomer('Prof', 0, 0)
+    global Ena
+    Ena = monomer('Ena', 0, 0)
+    global tip
+    tip = monomer('Tip', 0, 0)
+    global Dimer
+    Dimer = monomer('AP', 0, 0)
+    global Dimer1
+    Dimer1 = monomer('AP', 0, 0)
+    
+    #Diffusion coefficients 
+    global D
+    D = 5*10**6/h**2     #nm²/s 
+    global Da
+    Da = D
+    global Dp
+    Dp = D*(14/42)
+    global De
+    De = D*(39/42)
+    global Ddim
+    Ddim = D*(4/3)
+    
+    #Cross-section areas
+    global Sh
+    Sh = ((2*r + delta)**2)*(math.sqrt(3))/2
+    global Sc 
+    Sc = math.pi*r**2
+    global phi
+    phi = Sc/Sh
+    global Sbun
+    Sbun = 0.75*Sh*N
+    global Sfil
+    Sfil = math.pi*R**2
+    global Sin
+    Sin = Sfil - Sbun
+    global Sout
+    Sout = 0.75*(1-phi)*Sh*N
+    
+           
+    #User choices
+
+    #Set affinity radius	
+    global affin_pol		#Actin to be polymerized
+    affin_pol = 25/((R/2-d)**2
+    global affin_act		#Actin to be dimerized with profilin
+    affin_act = 15/((R/2-d)**2
+    global affin_ena		#Ena and profilin affinity
+    affin_ena = 20/((R/2-d)**2
+
+    #Choose the number of particles
+    global n_part
+    n_part = 1500     #default            
+        
+    #Choose which particles should be in the system
+    global A  
+    A = True     #Always True
+    global E
+    E = None     #True: Ena in the tip; False = free Ena; None = no Ena
+    global P
+    P = None     #True = free profilin; False = hetero-dimers AP; None = no profilin
+    
+    
+   
+    while (t != tfinal):
+          
+        n_part = math.floor(n_part + (1500 - n_part)/tfinal)      #total number of particles divided by the number of time steps
+        Vol_part = (n_part*((4/3)*math.pi*(0.0027)**3))
+        Vol_fluid = (Sfil*L) - (Vol_part + (Sbun*L)) 
+       
+        
+        if (pol == True): b = 1
+        else: b = 0
+        
+        if (t == 0):				             #create particles in each time step t in respect to user choices
+            
+            if (E is True):
+                
+                tip = monomer('Ena',0.0, 0.0)
+                tip.posx = bundle.length
+                tip.posy = R
+                tip.position = [tip.posx,tip.posy]
+                tip.status = 'off'
+            
+                bundle.insert(0, tip)
+                bundle.numon = bundle.numon + N
+                if (bundle.numon % N == 0):
+                    bundle.length = bundle.length + 0.0027
+                    tip.posx = bundle.length
+                    tip.position = [tip.posx,tip.posy]
+                    bundle.compart = math.ceil(bundle.length / h)
+                                    
+            else:
+                
+                tip = monomer('Tip',0.0, 0.0)
+                tip.posx = bundle.length
+                tip.posy = R
+                tip.position = [tip.posx,tip.posy]
+                tip.status = 'off'
+            
+                bundle.insert(0, tip)
+                bundle.numon = bundle.numon + 1
+                if (bundle.numon % N == 0):
+                    bundle.length = bundle.length + 0.0027
+                    tip.posx = bundle.length
+                    tip.position = [tip.posx,R]
+                    bundle.compart = math.ceil(bundle.length / h)
+            
+            for i in range(1, n_part+1):
+                               
+                if (P is True):
+                        
+                    Act = monomer('Actin', 0.0, 0.0)
+                    Act.posx = 0.0   
+                    side = random.randint(-1,1)
+                    if side == -1:
+                        Act.posy = round(random.uniform(0,R-15),3)
+                    else: Act.posy = round(random.uniform(R+15,2*R),3)
+                    Act.position = [Act.posx,Act.posy]
+                    Act.status = 'on'
+                        
+                    reservoir.append(Act)
+                    
+                    if (i % 10 == 0):    
+                        Prof = monomer('Profilin', 0.0, 0.0)
+                        Prof.posx = 0.0   
+                        side = random.randint(-1,1)
+                        if side == -1:
+                            Prof.posy = round(random.uniform(0,R-15),3)
+                        else: Prof.posy = round(random.uniform(R+15,2*R),3)
+                        Prof.position = [Prof.posx,Prof.posy]
+                        Prof.status = 'on'
+                      
+                        reservoir.append(Prof)
+                                        
+                elif (P is False):
+                        
+                    Dim = monomer('AP', 0.0, 0.0)
+                    Dim.posx = 0.0   
+                    side = random.randint(-1,1)
+                    if side == -1:
+                        Dim.posy = round(random.uniform(0,R-15),3)
+                    else: Dim.posy = round(random.uniform(R+15,2*R),3)
+                    Dim.position = [Prof.posx,Prof.posy]
+                    Dim.status = 'off'
+                            
+                    reservoir.append(Dim)
+                    
+                else:
+                        
+                    Act = monomer('Actin', 0.0, 0.0)
+                    Act.posx = 0.0   
+                    side = random.randint(-1,1)
+                    if side == -1:
+                        Act.posy = round(random.uniform(0,R-15),3)
+                    else: Act.posy = round(random.uniform(R+15,2*R),3)
+                    Act.position = [Act.posx,Act.posy]
+                    Act.status = 'on'
+                      
+                    reservoir.append(Act)    
+                    
+                if (i % 30 == 0) and (E is False):    
+                   
+                    Ena = monomer('Ena', 0.0, 0.0)
+                    Ena.posx = 0.0    
+                    side = random.randint(-1,1)
+                    if side == -1:
+                        Ena.posy = round(random.uniform(0,R-15),3)
+                    else: Ena.posy = round(random.uniform(R+15,2*R),3)
+                    Ena.position = [Ena.posx,Ena.posy]
+                    Ena.status = 'on'
+                   
+                    reservoir.append(Ena)
+       
+        else:  
+            for i in range(1, n_part+1):
+                
+                if (P is True):
+                    
+                    Act = monomer('Actin', 0.0, 0.0)
+                    Act.posx = 0.0   
+                    side = random.randint(-1,1)
+                    if side == -1:
+                        Act.posy = round(random.uniform(0,R-15),3)
+                    else: Act.posy = round(random.uniform(R+15,2*R),3)
+                    Act.position = [Act.posx,Act.posy]
+                    Act.status = 'on'
+                    
+                    reservoir.append(Act)
+                
+                    if (i % 10 == 0):    
+                        Prof = monomer('Profilin', 0.0, 0.0)
+                        Prof.posx = 0.0   
+                        side = random.randint(-1,1)
+                        if side == -1:
+                            Prof.posy = round(random.uniform(0,R-15),3)
+                        else: Prof.posy = round(random.uniform(R+15,2*R),3)
+                        Prof.position = [Prof.posx,Prof.posy]
+                        Prof.status = 'on'
+                  
+                        reservoir.append(Prof)
+                
+                elif (P is False):
+                    
+                    Dim = monomer('AP', 0.0, 0.0)
+                    Dim.posx = 0.0   
+                    side = random.randint(-1,1)
+                    if side == -1:
+                        Dim.posy = round(random.uniform(0,R-15),3)
+                    else: Dim.posy = round(random.uniform(R+15,2*R),3)
+                    Dim.position = [Prof.posx,Prof.posy]
+                    Dim.status = 'on'
+                        
+                    reservoir.append(Dim)
+                
+                else:
+                   
+                    Act = monomer('Actin', 0.0, 0.0)
+                    Act.posx = 0.0   
+                    side = random.randint(-1,1)
+                    if side == -1:
+                        Act.posy = round(random.uniform(0,R-15),3)
+                    else: Act.posy = round(random.uniform(R+15,2*R),3)
+                    Act.position = [Act.posx,Act.posy]
+                    Act.status = 'on'
+                    
+                    reservoir.append(Act)
+                    
+                if (i % 30 == 0) and (E is False):    
+                   
+                    Ena = monomer('Ena', 0.0, 0.0)
+                    Ena.posx = 0.0    
+                    side = random.randint(-1,1)
+                    if side == -1:
+                        Ena.posy = round(random.uniform(0,R-15),3)
+                    else: Ena.posy = round(random.uniform(R+15,2*R),3)
+                    Ena.position = [Ena.posx,Ena.posy]
+                    Ena.status = 'on'
+                   
+                    reservoir.append(Ena)   
+                    
+        
+
+	bundle.length = tip.posx + 0.5  
+        
+
+	        
+        ts = 0					#Make all particles to make 10 steps at each time t
+        while (ts != 10): 
+            for j in (reservoir): 
+                if (j.status == 'on'):
+                    if j.name == 'Actin': 
+                        Dif = Da
+                        M = 1
+                    elif j.name == 'Profilin':
+                        Dif = Dp
+                        M = 14/42
+                    elif j.name == 'Ena':
+                        Dif = De
+                        M = 39/42
+                    else:
+                        Dif = Ddim
+                        M = 3/4
+                                                    
+                    C = 10 - (10*bundle.length)/((bundle.length+((Dif*20)*math.exp(13/N))/(kon*N))) 
+                    
+                    #x-direction
+                    vdif = (2*Dif)/h      
+                    vadv = (a*kon*delta*C*math.exp(-13/N) + b*((Sout*vret)/(Sin*M)))/(h)
+                    vx = vdif + vadv
+                    step_x = vx*dt*random.random()
+                    j.posx = j.posx + step_x
+                                   
+                    #y-direction
+                    csi = random.uniform(-3, 3)
+                    step_y = ((math.sqrt(2*Dif*dt))*(csi))
+                    j.posy = j.posy + step_y
+                    
+                    
+                    # Boundaries 
+                    if j.posy <= 0: j.posy = 0.1
+                    if j.posy >= R-5 and j.posy <= R: j.posy = R-5
+                    if j.posy > R and j.posy <= R+5: j.posy = R+5
+                    if j.posy >= 2*R: j.posy = 2*R-0.1
+                    
+                    
+                    if j.posx >= bundle.length: 
+
+                            j.posx = j.posx - vx*dt*random.uniform(0,1)/h 
+
+                            if j.posy > R: 
+                                j.posy = j.posy - ((math.sqrt(2*Dif*dt))*(random.uniform(1, 3)))
+                            else: 
+                                j.posy = j.posy + ((math.sqrt(2*Dif*dt))*(random.uniform(1, 3)))
+                            
+                                           
+                    #Particle j's position 
+
+                    j.position = [j.posx,j.posy]
+                   
+                       
+            
+       for i in reservoir:			 #Searching for bindings 
+            
+            if (E == True):
+                if (P == False):    
+                    if (i.name == 'AP'):
+                        d = 0
+                        d = math.sqrt((i.posx - tip.posx)**2 
+                                    + (i.posy - tip.posy)**2)
+            
+                    if (d < affin_pol):
+                        Act1 = monomer('Actin', i.posx, i.posy)
+                        Prof = monomer('Profilin', random.uniform(0.0,bundle.length), 
+                                                   random.uniform(0.0, 2*R))
+                        del(i)
+                        
+                        bundle.insert(1, Act1)
+                        bundle.numon = bundle.numon + 1
+                        if (bundle.numon % N == 0):
+                            bundle.length = bundle.length + 0.0027
+                            tip.posx = bundle.length
+                            tip.position = [tip.posx,R]
+                            bundle.compart = math.ceil(bundle.length / h)
+                        pol = True
+                        
+                elif (P == True):
+                    if (i.name == 'Profilin'):
+                        for j in reservoir:
+                            if (j.name == 'Actin'):
+                                d = 0
+                                d = math.sqrt((i.posx - j.posx)**2 
+                                            + (i.posy - j.posy)**2)
+                            
+                                if (d < affin_act):
+                                    Dimer1 = monomer('AP', i.posx, i.posy)
+                                    Dimer1.name = 'AP'
+                                    Dimer1.posx = i.posx
+                                    Dimer1.posy = i.posy
+                                    Dimer1.position = [Dimer1.posx,Dimer1.posy]
+                                    Dimer1.status == 'on'
+                                    i.status = 'off'
+                                    j.status = 'off'
+                                    reservoir.append(Dimer1)     
+                                
+                                if (d < affin_pol):
+                                    #del(Dimer1.monomer)
+                                    Dimer1.status == 'off'
+                                    Act1 = monomer('Actin', i.posx, i.posy)
+                                    Prof = monomer('Profilin', random.uniform(0.0,bundle.length), 
+                                                               random.uniform(0.0, 2*R))
+                                    bundle.insert(1, Act1)
+                                    bundle.numon = bundle.numon + 1
+                                    if (bundle.numon % N == 0):
+                                        bundle.length = bundle.length + 0.0027
+                                        tip.posx = bundle.length
+                                        tip.position = [tip.posx,R]
+                                        bundle.compart = math.ceil(bundle.length / h)
+                                    pol = True
+                                    
+            elif (E == False):
+                if (i.name == 'Ena'):
+                    d = 0
+                    d = math.sqrt((i.posx - tip.posx)**2 
+                                + (i.posy - tip.posy)**2)
+                    
+                    if (d < affin_ena):
+                        bundle.insert(0, i)
+                        tip.name = 'Ena'
+                        bundle.numon = bundle.numon + N
+                        if (bundle.numon % N == 0):
+                            bundle.length = bundle.length + 0.0027
+                            tip.posx = bundle.length
+                            tip.position = [tip.posx,R]
+                            bundle.compart = math.ceil(bundle.length / h)
+                        E == True
+                        pol == True
+                        
+                elif (i.name == 'Profilin'):
+                    for j in reservoir:
+                        if (j.name == 'Actin'):
+                            d = 0
+                            d = math.sqrt((i.posx - j.posx)**2 
+                                        + (i.posy - j.posy)**2)
+                            
+                            if (d < affin_act):
+                                Dimer1 = monomer('AP', i.posx, i.posy)
+                                Dimer1.name = 'AP'
+                                Dimer1.posx = i.posx
+                                Dimer1.posy = i.posy
+                                Dimer1.position = [Dimer1.posx,Dimer1.posy]
+                                Dimer1.status == 'on'
+                                i.status = 'off'
+                                j.status = 'off'
+                                reservoir.append(Dimer1)     
+                                                                        
+                elif (i.name == 'Actin'):
+                    d = 0
+                    d = math.sqrt((i.posx - tip.posx)**2 
+                                + (i.posy - tip.posy)**2)
+                    
+                    if (d < affin_pol):
+                        bundle.insert(0, i)
+                        bundle.numon = bundle.numon + 1
+                        if (bundle.numon % N == 0):
+                            bundle.length = bundle.length + 0.0027
+                            tip.posx = bundle.length
+                            tip.position = [tip.posx,R]
+                            bundle.compart = math.ceil(bundle.length / h)
+                        pol = True
+                                                
+            else:
+                
+                if (i.name == 'Actin'):
+                        d = 0
+                        d = math.sqrt((i.posx - tip.posx)**2 
+                                    + (i.posy - tip.posy)**2)
+                        
+                        if (d < affin_pol):
+                            bundle.insert(0, i)
+                            bundle.numon = bundle.numon + 1
+                            if (bundle.numon % N == 0):
+                                bundle.length = bundle.length + 0.0027
+                                tip.posx = bundle.length
+                                tip.position = [tip.posx,R]
+                                bundle.compart = math.ceil(bundle.length / h)
+                            pol = True
+                
+                elif (i.name == 'Profilin'):
+                    for j in reservoir:
+                        if (j.name == 'Actin'):
+                            d = 0
+                            d = math.sqrt((i.posx - j.posx)**2 
+                                        + (i.posy - j.posy)**2)
+                            
+                            if (d < affin_act):
+                                Dimer1 = monomer('AP', i.posx, i.posy)
+                                Dimer1.name = 'AP'
+                                Dimer1.posx = i.posx
+                                Dimer1.posy = i.posy
+                                Dimer1.position = [Dimer1.posx,Dimer1.posy]
+                                Dimer1.status == 'on'
+                                i.status = 'off'
+                                j.status = 'off'
+                                reservoir.append(Dimer1) 
+                
+                               
+
+             
+        dis = N 				 #Depolymerization
+        bundle.remove(dis)
+        tip.posx = tip.posx - math.floor(dis/N)*0.0027
+        tip.posy = R
+        tip.position = [tip.posx,tip.posy]
+        bundle.compart = math.ceil(bundle.length / h)
+        if (bundle.length <= 0):
+            bundle.length = 0
+            bundle.compart = 1
+            tip.posx = bundle.length                        
+            tip.posy = R
+            tip.position = [tip.posx, tip.posy]
+            
+      
+        t = t + 1       
+                       
+       					#Print particles distribution
+        if t == tfinal:    
+            
+            plt.rcParams['figure.dpi'] = 150
+            plt.rcParams['figure.figsize'] = (6,1)
+            plt.axis([0, tip.posx + 1, 0, 2*R])
+            
+            for i in reservoir: 
+                if i.name == 'Actin': plt.plot(i.posx,i.posy,'.',color='red',ms=1)
+                if i.name == 'Tip': plt.plot(i.posx,i.posy,'*',color='black')
+                elif i.name == 'Profilin': plt.plot(i.posx,i.posy,'.',color='green',ms=1)
+                elif i.name == 'Ena': plt.plot(i.posx,i.posy,'.',color='blue',ms=1)
+                if i.name == 'AP': plt.plot(i.posx,i.posy,'.',color='orange',ms=1)
+                elif i.status == 'off': plt.plot(i.posx,i.posy,'.',color='black',ms=3)
+                else: plt.plot(i.posx,i.posy,'.',color='red',ms=2)
+            
+            bundle.length = tip.posx + 0.5
+            tip.posx = bundle.length - 0.5
+            eps = 0.0027
+            for j in np.arange(0,tip.posx + eps,eps):
+                plt.plot(j,R,'*',color='black',ms=3)
+                
+    plt.rcParams['figure.figsize'] = (4,3)
+    plt.axis([0, t, 0, bundle.length+0.5])
+    plt.plot(X,Y)
+    plt.show()    
+    
+    return N, delta, n_part, bundle.length, C 
+    
+    input('')        
+           
+            
+#End of program 
+
+
+    
+    
